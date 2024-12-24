@@ -8,7 +8,7 @@ fastapi = "*"
 uvicorn = "*"
 motor = "*"
 python-jose = {extras = ["cryptography"], version = "*"}
-passlib = {extras = ["bcrypt"], version = "*"}
+argon2-cffi = "*"  # Remplace passlib et bcrypt
 python-multipart = "*"
 python-dotenv = "*"
 pydantic = {extras = ["email"], version = "*"}

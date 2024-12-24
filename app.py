@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from motor.motor_asyncio import AsyncIOMotorClient
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+from argon2 import PasswordHasher
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
@@ -19,7 +19,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # Setup FastAPI
 app = FastAPI()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+ph = PasswordHasher()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # MongoDB connection
@@ -59,7 +59,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = await db.teachers.find_one({"username": form_data.username})
     if not user:
         user = await db.students.find_one({"username": form_data.username})
-    if not user or not pwd_context.verify(form_data.password, user["password"]):
+    
+    if not user:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+        
+    try:
+        ph.verify(user["password"], form_data.password)
+    except:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     
     access_token = create_access_token(data={"sub": user["username"]})
@@ -68,7 +74,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 # Teacher routes
 @app.post("/teachers")
 async def create_teacher(teacher: Teacher):
-    teacher.password = pwd_context.hash(teacher.password)
+    teacher.password = ph.hash(teacher.password)
     result = await db.teachers.insert_one(teacher.dict())
     return {"id": str(result.inserted_id)}
 
