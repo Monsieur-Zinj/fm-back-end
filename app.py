@@ -24,7 +24,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # MongoDB connection
 client = AsyncIOMotorClient(MONGODB_URI)
-db = client.flashcards_app
+db = client.flashcard_app
 
 # Auth functions
 def create_access_token(data: dict):
