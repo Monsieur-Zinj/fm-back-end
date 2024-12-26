@@ -27,3 +27,4 @@ var/
 # Virtual Environment
 venv/
 ENV/
+.aider*
